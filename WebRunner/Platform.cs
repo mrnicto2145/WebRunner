@@ -25,16 +25,21 @@ public class Platform
         _topTexture = topTexture;
     }
 
-    public void Draw(SpriteBatch spriteBatch, int xOffcet, int yOffcet, bool isTop, bool isBackground)
+    public void Draw(SpriteBatch spriteBatch, bool isTop, bool isBackground)
     {
-        var currentBounds = new Rectangle(Bounds.X + xOffcet, Bounds.Y + yOffcet, Bounds.Width, Bounds.Height);
+        var currentBounds = Bounds;            
         var color = isBackground ? Color.Gray : Color.Green;
         var texture = _texture;
         if (isTop)
         {
             color = Color.DarkGreen;
             texture = _topTexture;
+            currentBounds = new Rectangle(Bounds.X, 475 - Bounds.Y - Bounds.Height, Bounds.Width, Bounds.Height);
         }
-        spriteBatch.Draw(texture, Bounds, color);
+        if (isBackground)
+        {
+            currentBounds = new Rectangle(Bounds.X, 55, Bounds.Width, 365);
+        }
+        spriteBatch.Draw(texture, currentBounds, color);
     }
 }

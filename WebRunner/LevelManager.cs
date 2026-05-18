@@ -159,16 +159,16 @@ public class LevelManager
 
     public void DrawLevel(SpriteBatch spriteBatch)
     {
-        var yOffcet = 200;
-        for (var i = _currentFloor + 4; i != _currentFloor + 1; i--){
-            yOffcet -= 200;
-            var isTop = i == _currentFloor + 2;
-            var isBackground = i == _currentFloor + 3;
-            var platforms = _currentLevel.GetPlatforms(i%4);
-            foreach (var p in platforms)                
-                p.Draw(spriteBatch, 0, yOffcet, isTop, isBackground);
-        }
-        _floorPlatform.Draw(spriteBatch, 0, 0, false, false);
-        _topPlatform.Draw(spriteBatch, 0, 0, false, false);
+        var platforms = _currentLevel.GetPlatforms((_currentFloor+3)%4);
+        foreach (var p in platforms)                
+                p.Draw(spriteBatch, false, true);
+        platforms = _currentLevel.GetPlatforms((_currentFloor+2)%4);
+        foreach (var p in platforms)                
+                p.Draw(spriteBatch, true, false);
+        platforms = _currentLevel.GetPlatforms(_currentFloor%4);
+        foreach (var p in platforms)                
+                p.Draw(spriteBatch, false, false);
+        _floorPlatform.Draw(spriteBatch, false, false);
+        _topPlatform.Draw(spriteBatch, false, false);
     }
 }
