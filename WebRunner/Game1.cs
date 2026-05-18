@@ -14,6 +14,7 @@ public class Game1 : Game
     private List<Level> _levels;
     private int _levelNum;
     private Camera _camera;
+    private LevelManager _levelManager;
     private float _levelWidth = 2000;   // ширина текущего уровня (вычислите из платформ или задайте)
     private float _levelHeight = 480;
 
@@ -31,6 +32,7 @@ public class Game1 : Game
         _player = new Player(new Vector2(100, 100));
         _levels = LoadLevels();
         _camera = new Camera(GraphicsDevice.Viewport, _levelWidth, _levelHeight);
+        _levelManager = new LevelManager(_levels[_levelNum], 800f, 1200f);
         base.Initialize();
     }
 
@@ -38,18 +40,20 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         var pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+        var topTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData(new[] { Color.White });
+        topTexture.SetData(new[] { Color.White });
         _player.LoadContent(pixelTexture);
-        foreach (var p in _levels)
-            p.LoadContent(pixelTexture);
+        _levelManager.LoadContent(pixelTexture, topTexture);
     }
 
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-
-        _player.Update(gameTime, _levels, 0);
+        
+        _levelManager.Update(_player.Position);
+        _player.Update(gameTime, _levelManager, true);
         _camera.Follow(_player.Position);
 
         base.Update(gameTime);
@@ -60,8 +64,7 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         _spriteBatch.Begin(transformMatrix: _camera.GetTransformMatrix());
         _player.Draw(_spriteBatch);
-        foreach (var p in _levels[_levelNum].Platforms)
-            p.Draw(_spriteBatch);
+        _levelManager.DrawLevel(_spriteBatch);
         _spriteBatch.End();
 
         base.Draw(gameTime);
@@ -73,23 +76,21 @@ public class Game1 : Game
         {
             new Platform[]
             {
-                new Platform(new Rectangle(0, 400, 80000, 20)),
-                new Platform(new Rectangle(200, 350, 10000, 20)),
-                new Platform(new Rectangle(500, 300, 80000, 20))
+                new Platform(new Rectangle(200, 350, 100, 20)),
+                new Platform(new Rectangle(500, 300, 800, 20))
             },
             new Platform[]
             {
-                new Platform(new Rectangle(0, 400, 80000, 20)),
+                new Platform(new Rectangle(200, 400, 100, 20)),
             },
             new Platform[]
             {
-                new Platform(new Rectangle(0, 400, 80000, 20)),
-                new Platform(new Rectangle(200, 300, 10000, 20)),
-                new Platform(new Rectangle(500, 350, 80000, 20))
+                new Platform(new Rectangle(200, 300, 100, 20)),
+                new Platform(new Rectangle(500, 350, 800, 20))
             },
             new Platform[]
             {
-                new Platform(new Rectangle(0, 400, 80000, 20)),
+                new Platform(new Rectangle(200, 100, 100, 20)),
             }
         };
         return new List<Level>() { new Level(p) };

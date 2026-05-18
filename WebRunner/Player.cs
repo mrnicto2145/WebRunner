@@ -34,25 +34,33 @@ public class Player
         _texture = texture; // используем одну белую точку, но можно любой квадрат 32x32
     }
 
-    public void Update(GameTime gameTime, List<Level> levels, int levelNum)
+    public void Update(GameTime gameTime, LevelManager manager, bool debug)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         KeyboardState kb = Keyboard.GetState();
         // --- Горизонтальное движение ---
-        _velocity.X = MoveSpeed;
+        float move = MoveSpeed;
+        if (debug){
+            move = 0f;
+            if (kb.IsKeyDown(Keys.Left) || kb.IsKeyDown(Keys.A))
+                move = -MoveSpeed;
+            if (kb.IsKeyDown(Keys.Right) || kb.IsKeyDown(Keys.D))
+                move = MoveSpeed;
+        }
+        _velocity.X = move;
 
         if (kb.IsKeyDown(Keys.Space) && _isOnGround)
         {
             _velocity.Y = JumpForce;
             _isOnGround = false;
         }
-
+        
         bool currentDown = kb.IsKeyDown(Keys.Down);
-        if (currentDown && !_prevDownKey) levels[levelNum].switchFloor(-1);
+        if (currentDown && !_prevDownKey) manager.SwitchFloor(5);
         _prevDownKey = currentDown;
 
         bool currentUp = kb.IsKeyDown(Keys.Up);
-        if (currentUp && !_prevUpKey) levels[levelNum].switchFloor(1);
+        if (currentUp && !_prevUpKey) manager.SwitchFloor(1);
         _prevUpKey = currentUp;
 
         // --- Гравитация ---
@@ -64,8 +72,9 @@ public class Player
         Rectangle playerRect = GetPlayerRect(newPos);
 
         // --- Проверка коллизий с платформами ---
+        var platforms = manager.GetCurrentPlatforms();
         _isOnGround = false;
-        foreach (var platform in levels[levelNum].Platforms)
+        foreach (var platform in platforms)
         {
             Rectangle platformRect = platform.Bounds;
             if (playerRect.Intersects(platformRect))
