@@ -188,10 +188,12 @@ public class LevelManager
 
     public void DrawLevel(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
+        /*
         var platforms = _currentLevel.GetPlatforms((_currentFloor + 3) % 4);
         foreach (var p in platforms)
-            p.Draw(spriteBatch, false, true);
-        platforms = _currentLevel.GetPlatforms((_currentFloor + 2) % 4);
+            p.Draw(spriteBatch, false, true);*/
+        
+        var platforms = _currentLevel.GetPlatforms((_currentFloor + 2) % 4);
         foreach (var p in platforms)
             p.Draw(spriteBatch, true, false);
         platforms = _currentLevel.GetPlatforms(_currentFloor % 4);

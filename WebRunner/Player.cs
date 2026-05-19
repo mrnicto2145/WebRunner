@@ -20,9 +20,8 @@ public class Player
     private bool _prevDownKey;
     private bool _prevUpKey;
     private bool _prevZKey;
-    private int _jumpOnTop;
-    private bool _wasOnGround;
     private float _currentGravity;
+    private int _nearYtop;
 
     private int _health;
     private int _maxHealth;
@@ -46,9 +45,7 @@ public class Player
         _prevDownKey = false;
         _prevUpKey = false;
         _prevZKey = false;
-        _jumpOnTop = 1;
         _currentGravity = Gravity;
-
         _maxHealth = 5;
         _health = _maxHealth;
         _lives = 3;
@@ -64,7 +61,6 @@ public class Player
 
     public void Update(GameTime gameTime, LevelManager manager, bool debug)
     {
-        _wasOnGround = _isOnGround;
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         KeyboardState kb = Keyboard.GetState();
         // --- Горизонтальное движение ---
@@ -92,7 +88,6 @@ public class Player
         {
             _velocity.Y = JumpForce;
             _isOnGround = false;
-            _jumpOnTop = 1;
             _currentGravity = Gravity;
         }
         /*
@@ -107,10 +102,8 @@ public class Player
 
         bool currentZ = kb.IsKeyDown(Keys.Z);
         if (currentZ && !_prevZKey)
-        {
-            _jumpOnTop = -_jumpOnTop;
-            _currentGravity = _jumpOnTop * Gravity * 5;
-        }
+            _currentGravity = _currentGravity < 0 ? Gravity : - Gravity * 5;
+        
         _prevZKey = currentZ;
 
         // --- Гравитация ---
@@ -124,9 +117,20 @@ public class Player
         // --- Проверка коллизий с платформами ---
         var platforms = manager.GetCurrentPlatforms();
         _isOnGround = false;
+        _nearYtop = _currentGravity < 0 ? int.MinValue : 0; 
         foreach (var platform in platforms)
         {
             Rectangle platformRect = platform.Bounds;
+            if (playerRect.X >= platformRect.X && playerRect.X <= platformRect.X + platformRect.Width)
+            {
+                if (_currentGravity < 0)
+                {
+                    if (playerRect.Y >= platformRect.Y + platformRect.Height)
+                        _nearYtop = Math.Max(_nearYtop, platformRect.Y + platformRect.Height);
+                }
+                else
+                    _nearYtop = -1;
+            }
             if (playerRect.Intersects(platformRect))
             {
                 // Откатываем столкновение по Y (сверху/снизу) и X (слева/справа)
@@ -178,13 +182,19 @@ public class Player
 
     public void Draw(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
-        spriteBatch.Draw(_texture, GetPlayerRect(_position), Color.Red);
+        var playerRect = GetPlayerRect(_position);
+        spriteBatch.Draw(_texture, playerRect, Color.Red);
+        if (_nearYtop != -1)
+        {
+            spriteBatch.Draw(_texture, new Rectangle(playerRect.Center.X, _nearYtop, 1, playerRect.Y - _nearYtop), Color.White);
+        }
         // Для теста рисуем красным. Потом можно заменить на текстуру с прозрачностью.
         if ((font != null) && debug)
         {
             spriteBatch.DrawString(font, $"HP: {_health}/{_maxHealth}  Lives: {_lives} Timer {_invincibilityTimer}",
                 new Vector2(_position.X - 20, _position.Y - 30), Color.White);
         }
+
     }
 
     public void TakeDamage(int amount)
@@ -232,7 +242,6 @@ public class Player
         _velocity = Vector2.Zero;
         _position = new Vector2(100, 100);   // стартовая позиция
         _invincibilityTimer = 0f;        // можно дать небольшую неуязвимость после респавна
-        _jumpOnTop = 1;
         _currentGravity = Gravity;
     }
 
