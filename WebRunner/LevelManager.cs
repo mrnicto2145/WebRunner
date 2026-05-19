@@ -18,6 +18,7 @@ public class LevelManager
         public float X { get; private set; }          // левая граница чанка
         public float Width { get; private set; }      // ширина чанка
         public List<Platform>[] FloorPlatforms { get; private set; } // платформы для каждого этажа (0..3)
+        public List<Hitbox>[] FloorTraps { get; private set; }
 
         public Chunk(float x, float width)
         {
@@ -26,6 +27,16 @@ public class LevelManager
             FloorPlatforms = new List<Platform>[4];
             for (int i = 0; i < 4; i++)
                 FloorPlatforms[i] = new List<Platform>();
+            FloorTraps = new List<Hitbox>[4];
+            for (int i = 0; i < 4; i++)
+                FloorTraps[i] = new List<Hitbox>();
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            for (var i = 0; i < 4; i++)
+                foreach (var trap in FloorTraps[i])
+                    trap.Update(gameTime);
         }
 
         public float Right => X + Width;
@@ -94,6 +105,14 @@ public class LevelManager
                         chunk.FloorPlatforms[floor].Add(platform);
                     }
                 }
+                var preptraps = level.GetTraps(floor);
+                foreach (var trap in preptraps)
+                {
+                    if (trap.Bounds.Right >= chunk.X && trap.Bounds.Left <= chunk.Right)
+                    {
+                        chunk.FloorTraps[floor].Add(trap);
+                    }
+                }
             }
         }
     }
@@ -110,7 +129,7 @@ public class LevelManager
     /// <summary>
     /// Обновляет активные чанки по позиции игрока.
     /// </summary>
-    public void Update(Vector2 playerPosition)
+    public void Update(Vector2 playerPosition, GameTime gameTime)
     {
         float leftBound = playerPosition.X - _viewDistance * 2;
         float rightBound = playerPosition.X + _viewDistance * 2;
@@ -125,8 +144,9 @@ public class LevelManager
         // Добавляем новые чанки (если их ещё нет в активных)
         foreach (var chunk in neededChunks)
         {
+            chunk.Update(gameTime);
             if (!_activeChunks.Contains(chunk))
-                _activeChunks.Add(chunk);
+                _activeChunks.Add(chunk);                
         }
     }
 
@@ -146,29 +166,44 @@ public class LevelManager
         return result;
     }
 
+    public List<Hitbox> GetCurrentTraps()
+    {
+        var result = new List<Hitbox>();
+        foreach (var chunk in _activeChunks)
+            result.AddRange(chunk.FloorTraps[_currentFloor]);
+        return result;
+    }
+
     // Опционально: метод для загрузки текстур во все платформы (если нужно)
     public void LoadContent(Texture2D texture, Texture2D topTexture)
     {
         foreach (var chunk in _allChunks)
             for (int f = 0; f < 4; f++)
                 foreach (var p in chunk.FloorPlatforms[f])
-                    p.LoadContent(texture,topTexture);
+                    p.LoadContent(texture, topTexture);
         _floorPlatform.LoadContent(texture, topTexture);
         _topPlatform.LoadContent(texture, topTexture);
+        Hitbox._texture = texture;
     }
 
-    public void DrawLevel(SpriteBatch spriteBatch)
+    public void DrawLevel(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
-        var platforms = _currentLevel.GetPlatforms((_currentFloor+3)%4);
-        foreach (var p in platforms)                
-                p.Draw(spriteBatch, false, true);
-        platforms = _currentLevel.GetPlatforms((_currentFloor+2)%4);
-        foreach (var p in platforms)                
-                p.Draw(spriteBatch, true, false);
-        platforms = _currentLevel.GetPlatforms(_currentFloor%4);
-        foreach (var p in platforms)                
-                p.Draw(spriteBatch, false, false);
+        var platforms = _currentLevel.GetPlatforms((_currentFloor + 3) % 4);
+        foreach (var p in platforms)
+            p.Draw(spriteBatch, false, true);
+        platforms = _currentLevel.GetPlatforms((_currentFloor + 2) % 4);
+        foreach (var p in platforms)
+            p.Draw(spriteBatch, true, false);
+        platforms = _currentLevel.GetPlatforms(_currentFloor % 4);
+        foreach (var p in platforms)
+            p.Draw(spriteBatch, false, false);
         _floorPlatform.Draw(spriteBatch, false, false);
         _topPlatform.Draw(spriteBatch, false, false);
+        if (debug)
+        {
+            var traps = _currentLevel.GetTraps(_currentFloor);
+            foreach (var t in traps)
+                t.Draw(spriteBatch, font, debug);
+        }
     }
 }

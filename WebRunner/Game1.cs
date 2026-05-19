@@ -15,8 +15,10 @@ public class Game1 : Game
     private int _levelNum;
     private Camera _camera;
     private LevelManager _levelManager;
-    private float _levelWidth = 2000;   // ширина текущего уровня (вычислите из платформ или задайте)
+    private float _levelWidth = 200000;   // ширина текущего уровня (вычислите из платформ или задайте)
     private float _levelHeight = 480;
+    private SpriteFont _font;
+    private bool _debug;
 
     public Game1()
     {
@@ -24,6 +26,7 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         _levelNum = 0;
+        _debug = true;
     }
 
     protected override void Initialize()
@@ -43,6 +46,7 @@ public class Game1 : Game
         var topTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData(new[] { Color.White });
         topTexture.SetData(new[] { Color.White });
+        _font = Content.Load<SpriteFont>("HomeVideo");
         _player.LoadContent(pixelTexture);
         _levelManager.LoadContent(pixelTexture, topTexture);
     }
@@ -51,9 +55,15 @@ public class Game1 : Game
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        
-        _levelManager.Update(_player.Position);
-        _player.Update(gameTime, _levelManager, true);
+
+        _levelManager.Update(_player.Position, gameTime);
+
+        foreach (var trap in _levelManager.GetCurrentTraps())
+        {
+            trap.TryDamage(_player);
+        }
+
+        _player.Update(gameTime, _levelManager, _debug);
         _camera.Follow(_player.Position);
 
         base.Update(gameTime);
@@ -63,8 +73,8 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(transformMatrix: _camera.GetTransformMatrix());
-        _levelManager.DrawLevel(_spriteBatch);
-        _player.Draw(_spriteBatch);
+        _levelManager.DrawLevel(_spriteBatch, _font, _debug);
+        _player.Draw(_spriteBatch, _font, _debug);
         _spriteBatch.End();
 
         base.Draw(gameTime);
@@ -81,18 +91,37 @@ public class Game1 : Game
             },
             new Platform[]
             {
-                new Platform(new Rectangle(200, 400, 100, 20)),
+
             },
             new Platform[]
             {
-                new Platform(new Rectangle(200, 300, 100, 20)),
-                new Platform(new Rectangle(500, 350, 800, 20))
+                new Platform(new Rectangle(200, 350, 100, 20)),
+                new Platform(new Rectangle(500, 300, 800, 20))
             },
             new Platform[]
             {
-                new Platform(new Rectangle(200, 100, 100, 20)),
+
             }
         };
-        return new List<Level>() { new Level(p) };
+        var t= new Hitbox[][]
+        {
+            new Hitbox[]
+            {
+                new Hitbox(new Rectangle(300,350,100,20), 1, 1),
+            },
+            new Hitbox[]
+            {
+                
+            },
+            new Hitbox[]
+            {
+                
+            },
+            new Hitbox[]
+            {
+                
+            }
+        };
+        return new List<Level>() { new Level(p, t) };
     }
 }
