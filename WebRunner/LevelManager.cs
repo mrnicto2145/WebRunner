@@ -183,7 +183,7 @@ public class LevelManager
                     p.LoadContent(texture, topTexture);
         _floorPlatform.LoadContent(texture, topTexture);
         _topPlatform.LoadContent(texture, topTexture);
-        Hitbox._texture = texture;
+        Hitbox._debugTexture = texture;
     }
 
     public void DrawLevel(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)

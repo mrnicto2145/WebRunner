@@ -15,7 +15,8 @@ public class Hitbox
     public float Cooldown { get; set; } = 0f; // задержка между срабатываниями (сек)
 
     private float _cooldownTimer = 0f;
-    public static Texture2D _texture;
+    public static Texture2D _debugTexture;
+
 
     public Hitbox(Rectangle bounds, int damage = 1, float cooldown = 0.5f)
     {
@@ -48,14 +49,15 @@ public class Hitbox
         if (_cooldownTimer > 0) return false;
         if (!Bounds.Intersects(player.Hitbox.Bounds)) return false;
 
-        player.TakeDamage(Damage);
+        player.Push(new Vector2(-1000, -400));
+        player.TakeDamage(Damage);        
         _cooldownTimer = Cooldown;
         return true;
     }
 
     public void Draw(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
-        spriteBatch.Draw(_texture, Bounds, Color.Red);
+        spriteBatch.Draw(_debugTexture, Bounds, Color.Red);
         if (!(font == null) && debug)
         {
             spriteBatch.DrawString(font, $"Timer {_cooldownTimer}",

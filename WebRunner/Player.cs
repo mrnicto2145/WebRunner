@@ -64,16 +64,20 @@ public class Player
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         KeyboardState kb = Keyboard.GetState();
         // --- Горизонтальное движение ---
-        float move = MoveSpeed;
-        if (debug)
-        {
-            move = 0f;
-            if (kb.IsKeyDown(Keys.Left) || kb.IsKeyDown(Keys.A))
-                move = -MoveSpeed;
-            if (kb.IsKeyDown(Keys.Right) || kb.IsKeyDown(Keys.D))
-                move = MoveSpeed;
+        if (!debug){
+            _velocity.X += MoveSpeed * dt;
         }
-        _velocity.X = move;
+        else
+        {
+            _velocity.X = 0;
+            if (kb.IsKeyDown(Keys.Left))
+                _velocity.X += -MoveSpeed;
+            if (kb.IsKeyDown(Keys.Right))
+                _velocity.X += MoveSpeed;                
+        }
+        
+        if (_velocity.X > MoveSpeed) _velocity.X = MoveSpeed;
+        if (_velocity.X < -MoveSpeed) _velocity.X = -MoveSpeed;
 
         if (_invincibilityTimer > 0)
         {
@@ -121,11 +125,11 @@ public class Player
         foreach (var platform in platforms)
         {
             Rectangle platformRect = platform.Bounds;
-            if (playerRect.X >= platformRect.X && playerRect.X <= platformRect.X + platformRect.Width)
+            if (_position.X >= platformRect.X && playerRect.X <= platformRect.X + platformRect.Width)
             {
                 if (_currentGravity < 0)
                 {
-                    if (playerRect.Y >= platformRect.Y + platformRect.Height)
+                    if (_position.Y >= platformRect.Y + platformRect.Height)
                         _nearYtop = Math.Max(_nearYtop, platformRect.Y + platformRect.Height);
                 }
                 else
@@ -172,6 +176,10 @@ public class Player
         // Опционально: ограничение за края экрана
         if (_position.X < 0) _position.X = 0;
         if (_position.X + 32 > 800) _position.X = 800 - 32; // если ширина экрана 800*/
+    }
+    public void Push(Vector2 velocity)
+    {
+        _velocity += velocity;
     }
 
     private Rectangle GetPlayerRect(Vector2 pos)
