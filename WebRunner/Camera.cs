@@ -9,6 +9,8 @@ public class Camera
     private int _viewportWidth;
     private int _viewportHeight;
     private Vector2 _position;
+    public float X => _position.X;
+    public float Y => _position.Y;
     private float _levelWidth;
     private float _levelHeight;
 

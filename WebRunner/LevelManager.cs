@@ -64,16 +64,21 @@ public class LevelManager
         _chunkWidth = chunkWidth;
         _viewDistance = viewDistance;
         _currentFloor = 0;
-        _activeChunks = new List<Chunk>();
         _currentLevel = level;
+        _activeChunks = new List<Chunk>();
         _floorPlatform = new Platform(new Rectangle(0, 800, 2000, 10));
         _topPlatform = new Platform(new Rectangle(0, 800, 2000, 10));
+        DivideLevelByChunks();
+    }
 
+    private void DivideLevelByChunks()
+    {
+       
         // 1. Определяем границы уровня по всем платформам
         float minX = float.MaxValue, maxX = float.MinValue;
         for (int f = 0; f < 4; f++)
         {
-            foreach (var p in level.GetPlatforms(f))
+            foreach (var p in _currentLevel.GetPlatforms(f))
             {
                 minX = MathHelper.Min(minX, p.Bounds.Left);
                 maxX = MathHelper.Max(maxX, p.Bounds.Right);
@@ -97,15 +102,19 @@ public class LevelManager
         {
             for (int floor = 0; floor < 4; floor++)
             {
-                var prepplatforms = level.GetPlatforms(floor);
+                var prepplatforms = _currentLevel.GetPlatforms(floor);
                 foreach (var platform in prepplatforms)
                 {
                     if (platform.Bounds.Right >= chunk.X && platform.Bounds.Left <= chunk.Right)
                     {
                         chunk.FloorPlatforms[floor].Add(platform);
+                        var px = platform.Bounds.X;
+                        var py = platform.Bounds.Y;
+                        var hitbox = new Hitbox(new Rectangle(px - 2, py + 1, 5, platform.Bounds.Height - 2), false);
+                        chunk.FloorTraps[floor].Add(hitbox);
                     }
                 }
-                var preptraps = level.GetTraps(floor);
+                var preptraps = _currentLevel.GetTraps(floor);
                 foreach (var trap in preptraps)
                 {
                     if (trap.Bounds.Right >= chunk.X && trap.Bounds.Left <= chunk.Right)
@@ -114,6 +123,18 @@ public class LevelManager
                     }
                 }
             }
+        }
+    }
+
+    public void ResetLevel(Level currentLevel = null)
+    {
+        _activeChunks = new List<Chunk>();
+        _floorPlatform.ChangeBounds(new Rectangle(0, 800, 2000, 10));
+        _topPlatform.ChangeBounds(new Rectangle(0, 800, 2000, 10));
+        _currentFloor = 0;
+        if (currentLevel != null){
+            _currentLevel = currentLevel;
+            DivideLevelByChunks();
         }
     }
 
@@ -175,12 +196,15 @@ public class LevelManager
     }
 
     // Опционально: метод для загрузки текстур во все платформы (если нужно)
-    public void LoadContent(Texture2D texture, Texture2D topTexture)
+    public void LoadContent(Texture2D texture, Texture2D topTexture, Texture2D trapTexture)
     {
         foreach (var chunk in _allChunks)
-            for (int f = 0; f < 4; f++)
+            for (int f = 0; f < 4; f++){
                 foreach (var p in chunk.FloorPlatforms[f])
                     p.LoadContent(texture, topTexture);
+                foreach (var p in chunk.FloorTraps[f])
+                    p.LoadContent(trapTexture);
+            }
         _floorPlatform.LoadContent(texture, topTexture);
         _topPlatform.LoadContent(texture, topTexture);
         Hitbox._debugTexture = texture;
@@ -192,20 +216,17 @@ public class LevelManager
         var platforms = _currentLevel.GetPlatforms((_currentFloor + 3) % 4);
         foreach (var p in platforms)
             p.Draw(spriteBatch, false, true);*/
-        
+        /*
         var platforms = _currentLevel.GetPlatforms((_currentFloor + 2) % 4);
         foreach (var p in platforms)
-            p.Draw(spriteBatch, true, false);
-        platforms = _currentLevel.GetPlatforms(_currentFloor % 4);
+            p.Draw(spriteBatch, true, false);*/
+        var platforms = _currentLevel.GetPlatforms(_currentFloor % 4);
         foreach (var p in platforms)
             p.Draw(spriteBatch, false, false);
         _floorPlatform.Draw(spriteBatch, false, false);
         _topPlatform.Draw(spriteBatch, false, false);
-        if (debug)
-        {
-            var traps = _currentLevel.GetTraps(_currentFloor);
-            foreach (var t in traps)
-                t.Draw(spriteBatch, font, debug);
-        }
+        var traps = GetCurrentTraps();
+        foreach (var t in traps)
+            t.Draw(spriteBatch, font, debug);
     }
 }

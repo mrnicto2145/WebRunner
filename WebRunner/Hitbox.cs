@@ -16,13 +16,21 @@ public class Hitbox
 
     private float _cooldownTimer = 0f;
     public static Texture2D _debugTexture;
+    private Texture2D _texture;
+    private bool _drawable;
+    public bool drawable => _drawable;
+    private float _switcherCooldown;
+    private bool _switcher;
 
 
-    public Hitbox(Rectangle bounds, int damage = 1, float cooldown = 0.5f)
+    public Hitbox(Rectangle bounds, bool drawable, bool switcher = false, int damage = 1, float cooldown = 0f)
     {
         Bounds = bounds;
         Damage = damage;
         Cooldown = cooldown;
+        _drawable = drawable;
+        _switcher = switcher;
+        _switcherCooldown = 0f;
     }
 
     /// <summary>
@@ -30,12 +38,22 @@ public class Hitbox
     /// </summary>
     public void Update(GameTime gameTime)
     {
+        var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         if (_cooldownTimer > 0)
         {
-            _cooldownTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _cooldownTimer -= dt;
             if (Math.Abs(_cooldownTimer) < 1e-4)
             {
                 _cooldownTimer = 0;
+            }
+        }
+        else if (_switcher)
+        {
+            _switcherCooldown += dt;
+            if (_switcherCooldown >= 3 * Cooldown)
+            {
+                _cooldownTimer = Cooldown;
+                _switcherCooldown = 0;
             }
         }
     }
@@ -49,20 +67,28 @@ public class Hitbox
         if (_cooldownTimer > 0) return false;
         if (!Bounds.Intersects(player.Hitbox.Bounds)) return false;
 
-        player.Push(new Vector2(-1000, -400));
+        
         player.TakeDamage(Damage);        
         _cooldownTimer = Cooldown;
         return true;
     }
 
+    public void LoadContent(Texture2D texture)
+    {
+        _texture = texture;
+    }
+
     public void Draw(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
-        spriteBatch.Draw(_debugTexture, Bounds, Color.Red);
+        if (_drawable)
+        {
+            spriteBatch.Draw(_texture, Bounds,_cooldownTimer > 0 ? Color.Blue : Color.Azure);
+        }
         if (!(font == null) && debug)
         {
+            spriteBatch.Draw(_debugTexture, Bounds, Color.Red);
             spriteBatch.DrawString(font, $"Timer {_cooldownTimer}",
                 new Vector2(Bounds.X - 20, Bounds.Y - 30), Color.White);
         }
     }
-
 }

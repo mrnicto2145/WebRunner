@@ -23,6 +23,7 @@ public class Player
     private float _currentGravity;
     private int _nearYtop;
 
+    private string _damageLock;
     private int _health;
     private int _maxHealth;
     private int _lives;
@@ -42,6 +43,7 @@ public class Player
     {
         _position = startPos;
         _velocity = Vector2.Zero;
+        _damageLock = "";
         _prevDownKey = false;
         _prevUpKey = false;
         _prevZKey = false;
@@ -51,7 +53,7 @@ public class Player
         _lives = 3;
         _invincibilityTimer = 0f;
         // Хитбокс игрока – чуть меньше его спрайта для удобства (32x32 -> 28x28)
-        _hitbox = new Hitbox(new Rectangle((int)startPos.X + 2, (int)startPos.Y + 2, 28, 28), 0);
+        _hitbox = new Hitbox(new Rectangle((int)startPos.X, (int)startPos.Y, 32, 32), false, false, 0);
     }
 
     public void LoadContent(Texture2D texture)
@@ -92,8 +94,15 @@ public class Player
         {
             _velocity.Y = JumpForce;
             _isOnGround = false;
-            _currentGravity = Gravity;
+            _currentGravity = Gravity; 
         }
+
+        var currDebug = kb.IsKeyDown(Keys.D) && kb.IsKeyDown(Keys.E) && kb.IsKeyDown(Keys.B);
+        if (currDebug && !_prevDownKey)
+        {
+            Game1._debug = !Game1._debug;
+        }
+        _prevDownKey = currDebug;
         /*
         bool currentDown = kb.IsKeyDown(Keys.Down);
         if (currentDown && !_prevDownKey) manager.SwitchFloor(5);
@@ -171,7 +180,7 @@ public class Player
 
         _position = newPos;
 
-        _hitbox.Bounds = new Rectangle((int)_position.X + 2, (int)_position.Y + 2, 28, 28);
+        _hitbox.Bounds = new Rectangle((int)_position.X, (int)_position.Y, 32, 32);
         /*
         // Опционально: ограничение за края экрана
         if (_position.X < 0) _position.X = 0;
@@ -184,14 +193,13 @@ public class Player
 
     private Rectangle GetPlayerRect(Vector2 pos)
     {
-        // Просто квадрат 32x32 (можно поменять размер)
         return new Rectangle((int)pos.X, (int)pos.Y, 32, 32);
     }
 
     public void Draw(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
     {
         var playerRect = GetPlayerRect(_position);
-        spriteBatch.Draw(_texture, playerRect, Color.Red);
+        spriteBatch.Draw(_texture, playerRect,_invincibilityTimer > 0 ? Color.Red : Color.Blue);
         if (_nearYtop != -1)
         {
             spriteBatch.Draw(_texture, new Rectangle(playerRect.Center.X, _nearYtop, 1, playerRect.Y - _nearYtop), Color.White);
@@ -209,7 +217,6 @@ public class Player
     {
         if (!IsAlive) return;
         if (_invincibilityTimer > 0) return;   // неуязвимость
-
         _health -= amount;
         if (_health <= 0)
         {
@@ -219,6 +226,7 @@ public class Player
         else
         {
             _invincibilityTimer = InvincibilityDuration;
+            Push(new Vector2(-1000, -400));
         }
     }
 
@@ -244,12 +252,12 @@ public class Player
         }
     }
 
-    private void Respawn()
+    public void Respawn(float invincibilityTimer = 1f)
     {
         _health = _maxHealth;
         _velocity = Vector2.Zero;
         _position = new Vector2(100, 100);   // стартовая позиция
-        _invincibilityTimer = 0f;        // можно дать небольшую неуязвимость после респавна
+        _invincibilityTimer = invincibilityTimer;        // можно дать небольшую неуязвимость после респавна
         _currentGravity = Gravity;
     }
 
@@ -259,5 +267,6 @@ public class Player
         // Для простоты пока просто сбросим жизни и респавн:
         _lives = 3;
         Respawn();
+        
     }
 }
