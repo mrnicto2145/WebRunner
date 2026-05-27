@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -33,6 +34,8 @@ public class MenuManager
     // Размеры окна для центрирования
     private int _screenWidth;
     private int _screenHeight;
+    private float mouseTranformX;
+    private float mouseTranformY;
 
     // Текст кнопок
     private const string PlayText = "Play";
@@ -47,6 +50,8 @@ public class MenuManager
         _spriteBatch = spriteBatch;
         _screenWidth = graphicsDevice.Viewport.Width;
         _screenHeight = graphicsDevice.Viewport.Height;
+        mouseTranformX = 1;
+        mouseTranformY = 1;
     }
 
     /// <summary>
@@ -57,26 +62,26 @@ public class MenuManager
         _font = font;
 
         // Получаем размеры текста кнопок
-        Vector2 playSize = _font.MeasureString(PlayText);
-        Vector2 exitSize = _font.MeasureString(ExitText);
-        Vector2 resumeSize = _font.MeasureString(ResumeText);
-        Vector2 menuSize = _font.MeasureString(MainMenuText);
+        var playSize = _font.MeasureString(PlayText);
+        var exitSize = _font.MeasureString(ExitText);
+        var resumeSize = _font.MeasureString(ResumeText);
+        var menuSize = _font.MeasureString(MainMenuText);
 
         // Общая ширина и отступы (можно увеличить для удобства нажатия)
-        int buttonWidth = (int)MathHelper.Max(playSize.X, exitSize.X);
+        var buttonWidth = (int)MathHelper.Max(playSize.X, exitSize.X);
         buttonWidth = (int)MathHelper.Max(buttonWidth, resumeSize.X);
         buttonWidth = (int)MathHelper.Max(buttonWidth, menuSize.X);
         buttonWidth += 40; // дополнительные отступы по бокам
-        int buttonHeight = (int)playSize.Y + 20;
+        var buttonHeight = (int)playSize.Y + 20;
 
         // Расположение кнопок главного меню
-        int centerX = _screenWidth / 2 - buttonWidth / 2;
-        int startY = _screenHeight / 2;
+        var centerX = _screenWidth / 2 - buttonWidth / 2;
+        var startY = _screenHeight / 2;
         _playButtonRect = new Rectangle(centerX, startY, buttonWidth, buttonHeight);
         _exitButtonRect = new Rectangle(centerX, startY + buttonHeight + 20, buttonWidth, buttonHeight);
 
         // Расположение кнопок меню паузы (чуть выше центра)
-        int pauseCenterY = _screenHeight / 2 - 50;
+        var pauseCenterY = _screenHeight / 2 - 50;
         _resumeButtonRect = new Rectangle(centerX, pauseCenterY, buttonWidth, buttonHeight);
         _menuButtonRect = new Rectangle(centerX, pauseCenterY + buttonHeight + 20, buttonWidth, buttonHeight);
     }
@@ -89,16 +94,17 @@ public class MenuManager
     /// <param name="isPaused">true — меню паузы, false — главное меню</param>
     public MenuAction Update(bool isPaused, GameTime gameTime)
     {
-        MouseState currentMouse = Mouse.GetState();
-        bool leftClicked = (currentMouse.LeftButton == ButtonState.Pressed &&
+        var currentMouse = Mouse.GetState();
+        var leftClicked = (currentMouse.LeftButton == ButtonState.Pressed &&
                             _previousMouseState.LeftButton == ButtonState.Released);
 
-        MenuAction result = MenuAction.None;
+        var result = MenuAction.None;
 
         if (leftClicked)
         {
-            Point mousePos = currentMouse.Position;
-
+            var mousePos = currentMouse.Position;
+            mousePos = new Point((int)(mousePos.X * mouseTranformX), (int)(mousePos.Y * mouseTranformY));
+            Console.WriteLine(mousePos);
             if (!isPaused) // Главное меню
             {
                 if (_playButtonRect.Contains(mousePos))
@@ -138,7 +144,7 @@ public class MenuManager
     public void Draw(bool isPaused, int xShift = 0, int yShift = 0)
     {
         // Рисуем полупрозрачный фон, чтобы выделить меню
-        Texture2D blankTexture = new Texture2D(_graphicsDevice, 1, 1);
+        var blankTexture = new Texture2D(_graphicsDevice, 1, 1);
         blankTexture.SetData(new[] { Color.Black });
         _spriteBatch.Draw(blankTexture, new Rectangle(xShift, yShift, _screenWidth, _screenHeight), Color.Black * 0.7f);
 
@@ -198,8 +204,8 @@ public class MenuManager
     /// </summary>
     public void OnResolutionChanged(int width, int height)
     {
-        _screenWidth = width;
-        _screenHeight = height;
+        mouseTranformX = 800f / width;
+        mouseTranformY = 480f / height;
         if (_font != null)
             LoadContent(_font); // пересчитать прямоугольники
     }

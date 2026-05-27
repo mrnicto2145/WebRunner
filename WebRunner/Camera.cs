@@ -26,9 +26,9 @@ public class Camera
     // Вызывать каждый кадр после обновления позиции игрока
     public void Follow(Vector2 target)
     {
-        float targetX = target.X - _viewportWidth / 2f;
+        var targetX = target.X - _viewportWidth / 2f;
         
-        float targetY = _viewportHeight / 2f;
+        var targetY = _viewportHeight / 2f;
 
         // Не выходим за границы уровня
         targetX = MathHelper.Clamp(targetX, 0, _levelWidth - _viewportWidth);

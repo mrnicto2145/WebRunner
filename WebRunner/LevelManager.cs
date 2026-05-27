@@ -75,7 +75,8 @@ public class LevelManager
     {
        
         // 1. Определяем границы уровня по всем платформам
-        float minX = float.MaxValue, maxX = float.MinValue;
+        var minX = float.MaxValue;
+        var maxX = float.MinValue;
         for (int f = 0; f < 4; f++)
         {
             foreach (var p in _currentLevel.GetPlatforms(f))
@@ -89,7 +90,7 @@ public class LevelManager
 
         // 2. Создаём чанки, покрывающие весь диапазон [minX, maxX]
         _allChunks = new List<Chunk>();
-        float start = minX;
+        var start = minX;
         while (start < maxX)
         {
             var chunk = new Chunk(start, _chunkWidth);
@@ -100,7 +101,7 @@ public class LevelManager
         // 3. Распределяем платформы по чанкам
         foreach (var chunk in _allChunks)
         {
-            for (int floor = 0; floor < 4; floor++)
+            for (var floor = 0; floor < 4; floor++)
             {
                 var prepplatforms = _currentLevel.GetPlatforms(floor);
                 foreach (var platform in prepplatforms)
@@ -152,8 +153,8 @@ public class LevelManager
     /// </summary>
     public void Update(Vector2 playerPosition, GameTime gameTime)
     {
-        float leftBound = playerPosition.X - _viewDistance * 2;
-        float rightBound = playerPosition.X + _viewDistance * 2;
+        var leftBound = playerPosition.X - _viewDistance * 2;
+        var rightBound = playerPosition.X + _viewDistance * 2;
 
         // Находим чанки, которые пересекаются с зоной видимости
         var neededChunks = _allChunks.Where(c => c.Right >= leftBound && c.X <= rightBound).ToList();
@@ -196,7 +197,7 @@ public class LevelManager
     }
 
     // Опционально: метод для загрузки текстур во все платформы (если нужно)
-    public void LoadContent(Texture2D texture, Texture2D topTexture, Texture2D trapTexture)
+    public void LoadContent(Texture2D texture, Texture2D topTexture, Texture2D trapTexture, Color hintColor)
     {
         foreach (var chunk in _allChunks)
             for (int f = 0; f < 4; f++){
@@ -208,6 +209,10 @@ public class LevelManager
         _floorPlatform.LoadContent(texture, topTexture);
         _topPlatform.LoadContent(texture, topTexture);
         Hitbox._debugTexture = texture;
+        foreach(var hint in _currentLevel.GetHints())
+            hint.LoadContent(hintColor);
+            
+        
     }
 
     public void DrawLevel(SpriteBatch spriteBatch, SpriteFont font = null, bool debug = false)
@@ -228,5 +233,9 @@ public class LevelManager
         var traps = GetCurrentTraps();
         foreach (var t in traps)
             t.Draw(spriteBatch, font, debug);
+        var hints = _currentLevel.GetHints();
+        foreach (var hint in hints)
+            hint.Draw(spriteBatch, font);
+        
     }
 }

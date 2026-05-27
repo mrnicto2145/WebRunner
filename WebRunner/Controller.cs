@@ -98,8 +98,8 @@ namespace WebRunner
             // 3. Обработка комбинаций
             foreach (var comb in _combinationHandlers)
             {
-                Keys[] keys = comb.Key;
-                bool allPressed = true;
+                var keys = comb.Key;
+                var allPressed = true;
                 foreach (Keys k in keys)
                 {
                     if (!currentState.IsKeyDown(k))
@@ -109,7 +109,7 @@ namespace WebRunner
                     }
                 }
                 
-                bool wasTriggered = _combinationTriggered[keys];
+                var wasTriggered = _combinationTriggered[keys];
                 if (allPressed && !wasTriggered)
                 {
                     comb.Value?.Invoke();
@@ -141,7 +141,7 @@ namespace WebRunner
             public int GetHashCode(Keys[] obj)
             {
                 if (obj == null) return 0;
-                int hash = 17;
+                var hash = 17;
                 foreach (var k in obj)
                     hash = hash * 31 + k.GetHashCode();
                 return hash;

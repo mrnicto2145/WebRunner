@@ -48,7 +48,7 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _menuManager = new MenuManager(GraphicsDevice, _spriteBatch);
         //player
-        _player = new Player(new Vector2(100, 100));
+        _player = new Player(new Vector2(-40, 100));
         _levels = LoadLevels();
         _camera = new Camera(gameWidth, gameHeight, _levelWidth, _levelHeight);
         _levelManager = new LevelManager(_levels[_levelNum], 800f, 1200f);
@@ -67,7 +67,7 @@ public class Game1 : Game
         topTexture.SetData(new[] { Color.White });
         _font = Content.Load<SpriteFont>("HomeVideo");
         _player.LoadContent(pixelTexture);
-        _levelManager.LoadContent(pixelTexture, topTexture, pixelTexture);
+        _levelManager.LoadContent(pixelTexture, topTexture, pixelTexture, Color.Green);
         _menuManager.LoadContent(_font);
     }
 
@@ -149,7 +149,7 @@ public class Game1 : Game
     private void OnClientSizeChanged(object sender, EventArgs e)
     {
         UpdateDestinationRectangle();
-        //_menuManager?.OnResolutionChanged(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+        _menuManager?.OnResolutionChanged(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
     }
 
     private void UpdateDestinationRectangle()
@@ -222,9 +222,33 @@ public class Game1 : Game
         {
             new Platform[]
             {
-                new Platform(new Rectangle(200, 351, 100, 20)),
-                new Platform(new Rectangle(500, 300, 800, 20)),
-                new Platform(new Rectangle(1800, 300, 40, 150))
+                //обучение прыжкам
+                new Platform(new Rectangle(400, 400, 200, 20)),
+                new Platform(new Rectangle(700, 360, 400, 20)),
+                new Platform(new Rectangle(1200, 400, 200, 20)),
+                new Platform(new Rectangle(1500, 360, 400, 20)),
+
+                //обучение "подвисанию"
+                new Platform(new Rectangle(2400, 200, 20, 250)),
+                new Platform(new Rectangle(2700, 35, 20, 250)),
+                new Platform(new Rectangle(2900, 200, 20, 250)),
+                new Platform(new Rectangle(3100, 35, 20, 250)),
+
+                //комбинирование механик
+                new Platform(new Rectangle(3400, 400, 600, 20)),
+                new Platform(new Rectangle(3700, 150, 700, 20)),
+                new Platform(new Rectangle(4300, 400, 400, 20)),
+                new Platform(new Rectangle(4700, 150, 600, 20)),
+
+                new Platform(new Rectangle(5800, 200, 20, 250)),
+                new Platform(new Rectangle(6100, 35, 20, 250)),
+                new Platform(new Rectangle(6400, 150, 20, 300)),
+                new Platform(new Rectangle(6600, 35, 20, 300)),
+                new Platform(new Rectangle(6800, 150, 20, 300)),
+
+
+                //game over
+                new Platform(new Rectangle(8000, 35, 20, 415))
             },
             new Platform[]
             {
@@ -242,9 +266,18 @@ public class Game1 : Game
         {
             new Hitbox[]
             {
-                new Hitbox(new Rectangle(300,350,100,20), true, true, 1, 1),
-                new Hitbox(new Rectangle(1000, 440, 500, 10), true, true, 1, 1.5f),
-                new Hitbox(new Rectangle(1000, 35, 500, 10), true, true, 1, 1.6f),
+                //обучение прыжкам
+                new Hitbox(new Rectangle(400, 440, 1500, 10), true, false, 1, 0f),
+                new Hitbox(new Rectangle(400, 35, 1500, 10), true, false, 1, 0f),
+
+                //обучение подвисанию
+                //комбинирование механик
+                new Hitbox(new Rectangle(3400, 440, 1900, 10), true, false, 1, 0f),
+                new Hitbox(new Rectangle(3400, 35, 1900, 10), true, false, 1, 0f),
+
+                new Hitbox(new Rectangle(5820, 440, 580, 10), true, false, 1, 0f),
+                new Hitbox(new Rectangle(6420, 440, 380, 10), true, false, 1, 0f),
+
             },
             new Hitbox[]
             {
@@ -259,6 +292,12 @@ public class Game1 : Game
 
             }
         };
-        return new List<Level>() { new Level(p, t) };
+        var h = new Hint[]
+        {
+            new Hint("Press Space to jump", 400, 200),
+            new Hint("Press Z to jump on top\n(Be careful, you can't cancel it)", 2100, 200),
+            new Hint("Game over", 7700, 200)
+        };
+        return new List<Level>() { new Level(p, t, h) };
     }
 }
