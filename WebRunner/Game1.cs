@@ -248,7 +248,7 @@ public class Game1 : Game
 
 
                 //game over
-                new Platform(new Rectangle(8000, 35, 20, 415))
+                new Platform(new Rectangle(9500, 35, 20, 415))
             },
             new Platform[]
             {
@@ -278,6 +278,9 @@ public class Game1 : Game
                 new Hitbox(new Rectangle(5820, 440, 580, 10), true, false, 1, 0f),
                 new Hitbox(new Rectangle(6420, 440, 380, 10), true, false, 1, 0f),
 
+                new Hitbox(new Rectangle(7200, 440, 1500, 10), true, true, 1, 3f),
+                new Hitbox(new Rectangle(7200, 35, 1500, 10), true, true, 1, 2f)
+
             },
             new Hitbox[]
             {
@@ -296,7 +299,7 @@ public class Game1 : Game
         {
             new Hint("Press Space to jump", 400, 200),
             new Hint("Press Z to jump on top\n(Be careful, you can't cancel it)", 2100, 200),
-            new Hint("Game over", 7700, 200)
+            new Hint("Game over", 9200, 200)
         };
         return new List<Level>() { new Level(p, t, h) };
     }

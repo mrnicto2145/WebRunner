@@ -21,9 +21,10 @@ public class Hitbox
     public bool drawable => _drawable;
     private float _switcherCooldown;
     private bool _switcher;
+    private float _switchSpeed;
 
 
-    public Hitbox(Rectangle bounds, bool drawable, bool switcher = false, int damage = 1, float cooldown = 0f)
+    public Hitbox(Rectangle bounds, bool drawable, bool switcher = false, int damage = 1, float cooldown = 0f, float switchSpeed = 1f)
     {
         Bounds = bounds;
         Damage = damage;
@@ -31,6 +32,7 @@ public class Hitbox
         _drawable = drawable;
         _switcher = switcher;
         _switcherCooldown = 0f;
+        _switchSpeed = switchSpeed;
     }
 
     /// <summary>
@@ -49,10 +51,10 @@ public class Hitbox
         }
         else if (_switcher)
         {
-            _switcherCooldown += dt;
-            if (_switcherCooldown >= 3 * Cooldown)
+            _switcherCooldown += _switchSpeed * dt;
+            if (_switcherCooldown >= Cooldown)
             {
-                _cooldownTimer = Cooldown;
+                _cooldownTimer = 3 * Cooldown;
                 _switcherCooldown = 0;
             }
         }
