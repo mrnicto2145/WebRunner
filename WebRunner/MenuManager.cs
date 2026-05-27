@@ -104,7 +104,7 @@ public class MenuManager
         {
             var mousePos = currentMouse.Position;
             mousePos = new Point((int)(mousePos.X * mouseTranformX), (int)(mousePos.Y * mouseTranformY));
-            Console.WriteLine(mousePos);
+            
             if (!isPaused) // Главное меню
             {
                 if (_playButtonRect.Contains(mousePos))
